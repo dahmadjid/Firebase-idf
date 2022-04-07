@@ -18,6 +18,12 @@ realtime database for now. other features later
 - Create an api key (create credentials) and copy it in the API_KEY macro using [google cloud console](https://console.cloud.google.com/apis/credentials)
 - Go to your firebase project authentication tab and add new provider Email/Password and press save.
 - Create new user of your firebase project
+- edit rules of database to {
+  "rules": {
+    ".read": "auth.uid != null",
+    ".write": "auth.uid != null"
+    }
+ }
 - Copy email and password of the newly created user to USER_EMAIL and USER_PASSWORD macros
 - copy the link of the realtime database (not the website url) to DATABASE_URL 
 
