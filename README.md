@@ -1,3 +1,7 @@
-# ESP HTTP Client Example
+# Firebase in ESP-IDF
 
-See the README.md file in the upper level 'examples' directory for more information about examples.
+
+Firebase in esp-idf
+
+# Features:
+RTDB for now. other features later
