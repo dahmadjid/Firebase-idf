@@ -15,7 +15,7 @@ realtime database for now. other features later
 - Add SSID and PASSWORD of your wifi network
 - wifiInit function found in wifi_utils.h will connect to wifi
 ### Configure Auth :
-- Create an api key (create credentials) and copy it in the API_KEY macro using this [google cloud console](https://console.cloud.google.com/apis/credentials)
+- Create an api key (create credentials) and copy it in the API_KEY macro using [google cloud console](https://console.cloud.google.com/apis/credentials)
 - Go to your firebase project authentication tab and add new provider Email/Password and press save.
 - Create new user of your firebase project
 - Copy email and password of the newly created user to USER_EMAIL and USER_PASSWORD macros
