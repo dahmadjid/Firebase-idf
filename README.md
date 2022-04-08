@@ -10,7 +10,7 @@ realtime database for now. other features later
 - Make sure to have created a firebase project 
 - Make sure to have created a realtime database 
 - Clone this repository
-- Open main.cpp and configure all of the macros correctly 
+- Open firebase_config.h and configure all of the macros correctly 
 ### Configure Wifi SSID and Password
 - Add SSID and PASSWORD of your wifi network
 - wifiInit function found in wifi_utils.h will connect to wifi
