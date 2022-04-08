@@ -55,6 +55,7 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
+// TODO: protect this function from breaking 
 void Firebase::firebaseClientInit(void)
 {   
     esp_http_client_config_t config = {0};
@@ -65,144 +66,101 @@ void Firebase::firebaseClientInit(void)
     config.buffer_size_tx = 4096;
     config.buffer_size = HTTP_RECV_BUFFER_SIZE;
     Firebase::client = esp_http_client_init(&config);
-    Firebase::client_initialized = true;
     ESP_LOGI(HTTP_TAG, "HTTP Client Initialized");
 
+}
+esp_err_t Firebase::setHeader(const char* header, const char* value)
+{
+    return esp_http_client_set_header(Firebase::client, header, value);
+}
+
+http_ret_t Firebase::performClient(const char* url, esp_http_client_method_t method, std::string post_field)
+{
+    ESP_ERROR_CHECK(esp_http_client_set_url(Firebase::client, url));
+    ESP_ERROR_CHECK(esp_http_client_set_method(Firebase::client, method));
+    ESP_ERROR_CHECK(esp_http_client_set_post_field(Firebase::client, post_field.c_str(), post_field.length()));
+    esp_err_t err = esp_http_client_perform(Firebase::client);
+    int status_code = esp_http_client_get_status_code(Firebase::client);
+    if (err != ESP_OK || status_code != 200)
+    {
+        ESP_LOGE(HTTP_TAG, "Error while performing requst err=%d | status_code=%d", (int)err, status_code);
+        ESP_LOGE(HTTP_TAG, "request: url=%s | method=%d | post_field=%s", url, method, post_field.c_str());
+        ESP_LOGE(HTTP_TAG, "response=\n%s", local_response_buffer);
+    }
+    return {err, status_code};
 }
 
 esp_err_t Firebase::getRefreshToken(const user_account_t& account, bool register_account)
 {
-    
-    if (Firebase::client_initialized == false)
-    {
-        ESP_LOGE(HTTP_TAG, "Firebase client is not initialized");
-    }
 
+
+    http_ret_t http_ret;
+    
     std::string account_json = R"({"email":")";
     account_json += account.user_email; 
     account_json += + R"(", "password":")"; 
     account_json += account.user_password;
     account_json += R"(", "returnSecureToken": true})"; 
 
-    
+    Firebase::setHeader("content-type", "application/json");
     if (register_account)
     {
-        esp_http_client_set_url(Firebase::client, Firebase::register_url.c_str());
+        http_ret = Firebase::performClient(Firebase::register_url.c_str(), HTTP_METHOD_POST, account_json);
     }
     else
     {
-        esp_http_client_set_url(Firebase::client, Firebase::login_url.c_str());
+        http_ret = Firebase::performClient(Firebase::login_url.c_str(), HTTP_METHOD_POST, account_json);
     }
-    
-    esp_http_client_set_header(Firebase::client, "content-type", "application/json");
-    esp_http_client_set_post_field(Firebase::client, account_json.c_str(), account_json.length());
-    esp_http_client_set_method(Firebase::client, HTTP_METHOD_POST);
 
-    esp_err_t err = esp_http_client_perform(Firebase::client);
-    
-    
-    if (err == ESP_OK) 
+    if (http_ret.err == ESP_OK && http_ret.status_code == 200)
     {
-        ESP_LOGI(HTTP_TAG, "HTTPS Status = %d, content_length = %d", esp_http_client_get_status_code(client), esp_http_client_get_content_length(client));
-    } 
+        std::cout << Firebase::local_response_buffer << '\n';
+        const char* begin = Firebase::local_response_buffer;
+        const char* end = begin + strlen(Firebase::local_response_buffer);
+        Json::Reader reader;
+        Json::Value data;
+        reader.parse(begin, end, data, false);
+        Firebase::refresh_token = data["refreshToken"].asString();
+
+        ESP_LOGI(HTTP_TAG, "Refresh Token=%s", Firebase::refresh_token.c_str());
+        return ESP_OK;
+    }
     else 
     {
-        ESP_LOGE(HTTP_TAG, "Error perform http request %s", esp_err_to_name(err));
-        return err;
+        return ESP_FAIL;
     }
-    std::cout << Firebase::local_response_buffer << '\n';
-    const char* begin = Firebase::local_response_buffer;
-    const char* end = begin + strlen(Firebase::local_response_buffer);
-    Json::Reader reader;
-    Json::Value data;
-    reader.parse(begin, end, data, false);
-
-    Firebase::refresh_token = data["refreshToken"].asString();
-    ESP_LOGI(HTTP_TAG, "Refresh Token=%s", Firebase::refresh_token.c_str());
-
-    return ESP_OK;
-
 }
-int Firebase::getAuthToken()
+esp_err_t Firebase::getAuthToken()
 {
-    if (Firebase::client_initialized == false)
-    {
-        ESP_LOGE(HTTP_TAG, "Firebase client is not initialized");
-    }
+    http_ret_t http_ret;
 
     std::string token_post_data = R"({"grant_type": "refresh_token", "refresh_token":")";
     token_post_data+= Firebase::refresh_token + "\"}";
 
-    esp_http_client_set_url(Firebase::client, Firebase::auth_url.c_str());
-    esp_http_client_set_header(Firebase::client, "content-type", "application/json");
-    esp_http_client_set_post_field(Firebase::client, token_post_data.c_str(), token_post_data.length());
-    esp_http_client_set_method(Firebase::client, HTTP_METHOD_POST);
 
-    esp_err_t err = esp_http_client_perform(Firebase::client);
-    
-    if (err == ESP_OK) 
+    Firebase::setHeader("content-type", "application/json");
+    http_ret = Firebase::performClient(Firebase::auth_url.c_str(), HTTP_METHOD_POST, token_post_data);
+    if (http_ret.err == ESP_OK && http_ret.status_code == 200)
     {
-        ESP_LOGI(HTTP_TAG, "HTTPS Status = %d, content_length = %d", esp_http_client_get_status_code(client), esp_http_client_get_content_length(client));
-    } 
+        const char* begin = Firebase::local_response_buffer;
+        const char* end = begin + strlen(Firebase::local_response_buffer);
+        Json::Reader reader;
+        Json::Value data;
+        reader.parse(begin, end, data, false);
+        Firebase::auth_token = data["access_token"].asString();
+
+        ESP_LOGI(HTTP_TAG, "Auth Token=%s", Firebase::auth_token.c_str());
+
+        return ESP_OK;
+    }
     else 
     {
-        ESP_LOGE(HTTP_TAG, "Error perform http request %s", esp_err_to_name(err));
-        return err;
+        return ESP_FAIL;
     }
 
-    const char* begin = Firebase::local_response_buffer;
-    const char* end = begin + strlen(Firebase::local_response_buffer);
-    Json::Reader reader;
-    Json::Value data;
-    reader.parse(begin, end, data, false);
-
-
-    Firebase::auth_token = data["access_token"].asString();
-
-
-    ESP_LOGI(HTTP_TAG, "Auth Token=%s", Firebase::auth_token.c_str());
-
-
-    return ESP_OK;
+    
 }
 
-
-Json::Value Firebase::getData(const char* path)
-{
-    if (Firebase::client_initialized == false)
-    {
-        ESP_LOGE(HTTP_TAG, "Firebase client is not initialized");
-    }
-    
-    std::string url = Firebase::base_database_url;
-    url += path;
-    url += ".json?auth=" + Firebase::auth_token;
-
-    esp_http_client_set_url(Firebase::client, url.c_str());
-    esp_http_client_set_header(Firebase::client, "content-type", "application/json");
-    esp_http_client_set_method(Firebase::client, HTTP_METHOD_GET);
-
-    esp_err_t err = esp_http_client_perform(Firebase::client);
-    
-    if (err == ESP_OK) 
-    {
-        ESP_LOGI(HTTP_TAG, "HTTPS Status = %d, content_length = %d", esp_http_client_get_status_code(client), esp_http_client_get_content_length(client));
-    } 
-    else 
-    {
-        ESP_LOGE(HTTP_TAG, "Error perform http request %s", esp_err_to_name(err));
-        return Json::Value();
-    }
-    std::cout << Firebase::local_response_buffer << std::endl;
-    const char* begin = Firebase::local_response_buffer;
-    const char* end = begin + strlen(Firebase::local_response_buffer);
-    Json::Reader reader;
-    Json::Value data;
-    reader.parse(begin, end, data, false);
-
-    ESP_LOGI(RTDB_TAG, "Data with path=%s acquired", path);
-    return data;
-}
 
 
 Firebase::Firebase(const config_t& config)
@@ -222,36 +180,74 @@ Firebase::~Firebase()
     esp_http_client_cleanup(Firebase::client);
 }
 
-int Firebase::registerUserAccount(const user_account_t& account)
+esp_err_t Firebase::registerUserAccount(const user_account_t& account)
 {
     esp_err_t err = Firebase::getRefreshToken(account, true);
     if (err != ESP_OK)
     {
         ESP_LOGE(HTTP_TAG, "Failed to get refresh token");
-        return -1;
+        return ESP_FAIL;
     }
     err = Firebase::getAuthToken();
     if (err != ESP_OK)
     {
         ESP_LOGE(HTTP_TAG, "Failed to get auth token");
-        return -1;
+        return ESP_FAIL;
     }
-    return 0;
+    return ESP_OK;
 }
 
-int Firebase::loginUserAccount(const user_account_t& account)
+esp_err_t Firebase::loginUserAccount(const user_account_t& account)
 {
     esp_err_t err = Firebase::getRefreshToken(account, false);
     if (err != ESP_OK)
     {
         ESP_LOGE(HTTP_TAG, "Failed to get refresh token");
-        return -1;
+        return ESP_FAIL;
     }
     err = Firebase::getAuthToken();
     if (err != ESP_OK)
     {
         ESP_LOGE(HTTP_TAG, "Failed to get auth token");
-        return -1;
+        return ESP_FAIL;
     }
-    return 0;
+    return ESP_OK;
 }
+
+Json::Value Firebase::getData(const char* path)
+{
+    
+    std::string url = Firebase::base_database_url;
+    url += path;
+    url += ".json?auth=" + Firebase::auth_token;
+
+    Firebase::setHeader("content-type", "application/json");
+    http_ret_t http_ret = Firebase::performClient(url.c_str(), HTTP_METHOD_GET, "");
+    if (http_ret.err == ESP_OK && http_ret.status_code == 200)
+    {
+        std::cout << Firebase::local_response_buffer << std::endl;
+        const char* begin = Firebase::local_response_buffer;
+        const char* end = begin + strlen(Firebase::local_response_buffer);
+
+        Json::Reader reader;
+        Json::Value data;
+
+        reader.parse(begin, end, data, false);
+
+        ESP_LOGI(RTDB_TAG, "Data with path=%s acquired", path);
+        return data;
+    }
+    else
+    {   
+        ESP_LOGE(RTDB_TAG, "Error while getting data at path %s| esp_err_t=%d | status_code=%d", path, (int)http_ret.err, http_ret.status_code);
+        return Json::Value();
+    }
+}
+
+// esp_err_t putData(const char* path, const std::string json_data)
+// {
+//     esp_http_client_set_url(Firebase::client, url.c_str());
+//     esp_http_client_set_header(Firebase::client, "content-type", "application/json");
+//     esp_http_client_set_post_field(Firebase::client, json_data.c_str(), json_data.length());
+//     esp_http_client_set_method(Firebase::client, HTTP_METHOD_PUT);
+// }
