@@ -44,7 +44,10 @@ namespace ESPFirebase
         char* local_response_buffer;
         esp_http_client_handle_t client;
         bool client_initialized = false;
-        
+        account_t user_account = {"", ""};
+
+
+
         void firebaseClientInit(void);
         esp_err_t setHeader(const char* header, const char* value);
         http_ret_t performClient(const char* url, esp_http_client_method_t method, std::string post_field);

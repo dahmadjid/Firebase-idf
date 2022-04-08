@@ -90,16 +90,16 @@ http_ret_t Firebase::performClient(const char* url, esp_http_client_method_t met
     return {err, status_code};
 }
 
-esp_err_t Firebase::getRefreshToken(const user_account_t& account, bool register_account)
+esp_err_t Firebase::getRefreshToken(bool register_account)
 {
 
 
     http_ret_t http_ret;
     
     std::string account_json = R"({"email":")";
-    account_json += account.user_email; 
+    account_json += Firebase::user_account.user_email; 
     account_json += + R"(", "password":")"; 
-    account_json += account.user_password;
+    account_json += Firebase::user_account.user_password;
     account_json += R"(", "returnSecureToken": true})"; 
 
     Firebase::setHeader("content-type", "application/json");
