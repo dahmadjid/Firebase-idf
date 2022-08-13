@@ -129,7 +129,7 @@ esp_err_t FirebaseApp::getRefreshToken(bool register_account)
 
     if (http_ret.err == ESP_OK && http_ret.status_code == 200)
     {
-        std::cout << FirebaseApp::local_response_buffer << '\n';
+        // std::cout << FirebaseApp::local_response_buffer << '\n';
         const char* begin = FirebaseApp::local_response_buffer;
         const char* end = begin + strlen(FirebaseApp::local_response_buffer);
         Json::Reader reader;
