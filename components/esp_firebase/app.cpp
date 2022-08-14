@@ -20,6 +20,7 @@
 
 
 #define HTTP_TAG "HTTP_CLIENT"
+#define FIREBASE_APP_TAG "FirebaseApp"
 
 extern const char cert_start[] asm("_binary_gtsr1_pem_start");
 extern const char cert_end[]   asm("_binary_gtsr1_pem_end");
@@ -74,7 +75,7 @@ void FirebaseApp::firebaseClientInit(void)
     config.buffer_size_tx = 4096;
     config.buffer_size = HTTP_RECV_BUFFER_SIZE;
     FirebaseApp::client = esp_http_client_init(&config);
-    ESP_LOGD(HTTP_TAG, "HTTP Client Initialized");
+    ESP_LOGD(FIREBASE_APP_TAG, "HTTP Client Initialized");
 
 }
 
@@ -93,9 +94,9 @@ http_ret_t FirebaseApp::performRequest(const char* url, esp_http_client_method_t
     int status_code = esp_http_client_get_status_code(FirebaseApp::client);
     if (err != ESP_OK || status_code != 200)
     {
-        ESP_LOGE(HTTP_TAG, "Error while performing request esp_err_t code=0x%x | status_code=%d", (int)err, status_code);
-        ESP_LOGE(HTTP_TAG, "request: url=%s \nmethod=%d \npost_field=%s", url, method, post_field.c_str());
-        ESP_LOGE(HTTP_TAG, "response=\n%s", local_response_buffer);
+        ESP_LOGE(FIREBASE_APP_TAG, "Error while performing request esp_err_t code=0x%x | status_code=%d", (int)err, status_code);
+        ESP_LOGE(FIREBASE_APP_TAG, "request: url=%s \nmethod=%d \npost_field=%s", url, method, post_field.c_str());
+        ESP_LOGE(FIREBASE_APP_TAG, "response=\n%s", local_response_buffer);
     }
     return {err, status_code};
 }
@@ -137,7 +138,7 @@ esp_err_t FirebaseApp::getRefreshToken(bool register_account)
         reader.parse(begin, end, data, false);
         FirebaseApp::refresh_token = data["refreshToken"].asString();
 
-        ESP_LOGD(HTTP_TAG, "Refresh Token=%s", FirebaseApp::refresh_token.c_str());
+        ESP_LOGD(FIREBASE_APP_TAG, "Refresh Token=%s", FirebaseApp::refresh_token.c_str());
         return ESP_OK;
     }
     else 
@@ -164,7 +165,7 @@ esp_err_t FirebaseApp::getAuthToken()
         reader.parse(begin, end, data, false);
         FirebaseApp::auth_token = data["access_token"].asString();
 
-        ESP_LOGD(HTTP_TAG, "Auth Token=%s", FirebaseApp::auth_token.c_str());
+        ESP_LOGD(FIREBASE_APP_TAG, "Auth Token=%s", FirebaseApp::auth_token.c_str());
 
         return ESP_OK;
     }
@@ -241,17 +242,19 @@ esp_err_t FirebaseApp::registerUserAccount(const user_account_t& account)
     esp_err_t err = FirebaseApp::getRefreshToken(true);
     if (err != ESP_OK)
     {
-        ESP_LOGE(HTTP_TAG, "Failed to get refresh token");
+        ESP_LOGE(FIREBASE_APP_TAG, "Failed to get refresh token");
         return ESP_FAIL;
     }
     FirebaseApp::clearHTTPBuffer();
     err = FirebaseApp::getAuthToken();
     if (err != ESP_OK)
     {
-        ESP_LOGE(HTTP_TAG, "Failed to get auth token");
+        ESP_LOGE(FIREBASE_APP_TAG, "Failed to get auth token");
         return ESP_FAIL;
     }
     FirebaseApp::clearHTTPBuffer();
+    ESP_LOGI(FIREBASE_APP_TAG, "Created user successfully");
+
     return ESP_OK;
 }
 
@@ -265,7 +268,7 @@ esp_err_t FirebaseApp::loginUserAccount(const user_account_t& account)
     esp_err_t err = FirebaseApp::getRefreshToken(false);
     if (err != ESP_OK)
     {
-        ESP_LOGE(HTTP_TAG, "Failed to get refresh token");
+        ESP_LOGE(FIREBASE_APP_TAG, "Failed to get refresh token");
         return ESP_FAIL;
     }
     FirebaseApp::clearHTTPBuffer();
@@ -273,11 +276,11 @@ esp_err_t FirebaseApp::loginUserAccount(const user_account_t& account)
     err = FirebaseApp::getAuthToken();
     if (err != ESP_OK)
     {
-        ESP_LOGE(HTTP_TAG, "Failed to get auth token");
+        ESP_LOGE(FIREBASE_APP_TAG, "Failed to get auth token");
         return ESP_FAIL;
     }
     FirebaseApp::clearHTTPBuffer();
-
+    ESP_LOGI(FIREBASE_APP_TAG, "Login to user successful");
     return ESP_OK;
 }
 

@@ -22,14 +22,12 @@ Json::Value RTDB::getData(const char* path)
     
     std::string url = RTDB::base_database_url;
     url += path;
-    std::cout << url << std::endl;
     url += ".json?auth=" + this->app->auth_token;
 
     this->app->setHeader("content-type", "application/json");
     http_ret_t http_ret = this->app->performRequest(url.c_str(), HTTP_METHOD_GET, "");
     if (http_ret.err == ESP_OK && http_ret.status_code == 200)
     {
-        //std::cout << this->app->local_response_buffer << std::endl;
         const char* begin = this->app->local_response_buffer;
         const char* end = begin + strlen(this->app->local_response_buffer);
 
@@ -51,7 +49,6 @@ Json::Value RTDB::getData(const char* path)
         http_ret = this->app->performRequest(url.c_str(), HTTP_METHOD_GET, "");
         if (http_ret.err == ESP_OK && http_ret.status_code == 200)
         {
-            std::cout << this->app->local_response_buffer << std::endl;
             const char* begin = this->app->local_response_buffer;
             const char* end = begin + strlen(this->app->local_response_buffer);
 
@@ -161,6 +158,28 @@ esp_err_t RTDB::patchData(const char* path, const Json::Value& data)
     std::string json_str = writer.write(data);
     esp_err_t err = RTDB::patchData(path, json_str.c_str());
     return err;
+}
+
+
+esp_err_t RTDB::deleteData(const char* path)
+{
+    
+    std::string url = RTDB::base_database_url;
+    url += path;
+    url += ".json?auth=" + this->app->auth_token;
+    this->app->setHeader("content-type", "application/json");
+    http_ret_t http_ret = this->app->performRequest(url.c_str(), HTTP_METHOD_DELETE, "");
+    this->app->clearHTTPBuffer();
+    if (http_ret.err == ESP_OK && http_ret.status_code == 200)
+    {
+        ESP_LOGI(RTDB_TAG, "DELETE successful");
+        return ESP_OK;
+    }
+    else
+    {
+        ESP_LOGE(RTDB_TAG, "DELETE failed");
+        return ESP_FAIL;
+    }
 }
 
 

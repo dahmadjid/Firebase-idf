@@ -31,6 +31,7 @@ namespace ESPFirebase
         esp_err_t patchData(const char* path, const char* json_str);
         esp_err_t patchData(const char* path, const Json::Value& data);
         
+        esp_err_t deleteData(const char* path);
         RTDB(FirebaseApp* app, const char* database_url);
     };
 

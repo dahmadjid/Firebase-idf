@@ -75,25 +75,30 @@ extern "C" void app_main(void)
     // Edit person2 data in the database by patching
     data["age"] = 23;
     db.patchData("person2", data);
-
     Json::Value root = db.getData("person3"); // retrieve person3 from database, set it to "" to get entire database
 
     Json::FastWriter writer;
     std::string person3_string = writer.write(root);  // convert it to json string
 
-    // ESP_LOGI("MAIN", "person3 as json string: \n%s", person3_string.c_str());
+    ESP_LOGI("MAIN", "person3 as json string: \n%s", person3_string.c_str());
 
     // You can also print entire Json Value object with std::cout with converting to string 
     // you cant print directly with printf or LOGx because Value objects can have many type. << is overloaded and can print regardless of the type of the Value
     std::cout << root << std::endl;
-    
 
     // print the members (Value::Members is a vector)
     Json::Value::Members members = root.getMemberNames();  
-    for (auto member : members)
+    for (const auto& member : members)
     {
         std::cout << member << ", ";
     }
     std::cout << std::endl;
+
+
+    db.deleteData("person3"); // delete person3
+    root = db.getData("person3"); // retrieve person3 from database, this time it will be null because person3 doesnt exist in database
+    std::cout << root << std::endl;
+
+
 }
 
