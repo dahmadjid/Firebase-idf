@@ -10,6 +10,8 @@ realtime database for now. other features later
 - Make sure to have created a firebase project 
 - Make sure to have created a realtime database 
 - Clone this repository
+  ```git clone --recursive https://github.com/dahmadjid/Firebase-idf.git```
+  
 - Open firebase_config.h and configure all of the macros correctly 
 ### Configure Wifi SSID and Password
 - Add SSID and PASSWORD of your wifi network
