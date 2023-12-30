@@ -1,7 +1,7 @@
 #ifndef _ESP_FIREBASE_H_
 #define _ESP_FIREBASE_H_
 #include "esp_http_client.h"
-
+#include <iostream>
 #define HTTP_RECV_BUFFER_SIZE 4096
 
 namespace ESPFirebase {
@@ -17,7 +17,7 @@ struct http_ret_t {
 };
 /**
  * @brief Class over the esp_http_client, handles auth and should be passed as
- * ptr to other classes such as RTDB
+ * reference to other classes such as RTDB
  *
  */
 class FirebaseApp {

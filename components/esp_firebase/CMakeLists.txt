@@ -1,5 +1,8 @@
 
-idf_component_register(SRCS "rtdb.cpp" "app.cpp"
-                    INCLUDE_DIRS "." ".."
-                    PRIV_REQUIRES esp_http_client esp-tls
-                    EMBED_TXTFILES gtsr1.pem)
+idf_component_register(
+    SRCS "src/rtdb.cpp" "src/app.cpp"
+    INCLUDE_DIRS "include"
+    REQUIRES jsoncpp esp_http_client
+    PRIV_REQUIRES esp-tls
+    EMBED_TXTFILES gtsr1.pem
+)

@@ -1,5 +1,5 @@
 
-#include "app.h"
+#include "esp_firebase/app.h"
 
 #include <iostream>
 
@@ -8,8 +8,8 @@
 #include "esp_tls.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "jsoncpp/json.h"
-#include "jsoncpp/value.h"
+#include "json/json.h"
+#include "json/value.h"
 
 // #include "nvs.h"
 // #include "nvs_flash.h"

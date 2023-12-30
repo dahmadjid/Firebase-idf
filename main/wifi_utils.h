@@ -6,18 +6,11 @@ Unless required by applicable law or agreed to in writing, this
 software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied.
 */
-#include "esp_event.h"
 #include "esp_log.h"
-#include "esp_system.h"
 #include "esp_wifi.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
-#include "freertos/task.h"
 #include "nvs_flash.h"
 #include <string.h>
-#include "lwip/err.h"
-#include "lwip/sys.h"
-
 
 #ifdef __cplusplus
 extern "C" {

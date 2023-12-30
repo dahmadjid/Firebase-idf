@@ -2,8 +2,8 @@
 #define _ESP_FIREBASE_RTDB_H_
 
 #include "app.h"
-#include "jsoncpp/json.h"
-#include "jsoncpp/value.h"
+#include "json/json.h"
+#include "json/value.h"
 
 namespace ESPFirebase {
 class RTDB {
