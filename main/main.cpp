@@ -32,7 +32,7 @@ extern "C" void app_main(void)
 
     app.loginUserAccount(account);
 
-    RTDB db = RTDB(&app, DATABASE_URL);
+    RTDB db = RTDB(app, DATABASE_URL);
 
     
 
