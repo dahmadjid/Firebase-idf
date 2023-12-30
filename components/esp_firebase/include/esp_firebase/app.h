@@ -1,7 +1,8 @@
 #ifndef _ESP_FIREBASE_H_
 #define _ESP_FIREBASE_H_
-#include "esp_http_client.h"
 #include <iostream>
+
+#include "esp_http_client.h"
 #define HTTP_RECV_BUFFER_SIZE 4096
 
 namespace ESPFirebase {
@@ -21,7 +22,7 @@ struct http_ret_t {
  *
  */
 class FirebaseApp {
-   private:
+private:
     const char* https_certificate;
     std::string api_key = "";
     std::string register_url =
@@ -41,7 +42,7 @@ class FirebaseApp {
     esp_err_t nvsSaveTokens();  // useless until expire time added
     esp_err_t nvsReadTokens();  // useless until expire time added
 
-   public:
+public:
     user_account_t user_account = {"", ""};
 
     char* local_response_buffer;

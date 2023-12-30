@@ -1,2 +1,8 @@
 BasedOnStyle: Google
 IndentWidth: 4  
+AlignAfterOpenBracket: BlockIndent
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty
+SeparateDefinitionBlocks: Always
+IndentAccessModifiers: false
+AccessModifierOffset: -4

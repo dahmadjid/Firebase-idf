@@ -1,2 +1,0 @@
-CompileFlags:
-  Remove: [-mno-direct-extern-access, -mlongcalls, -fstrict-volatile-bitfields, -fno-tree-switch-conversion]
