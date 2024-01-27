@@ -3,6 +3,7 @@
 
 #include "app.h"
 #include "json/value.h"
+#include <unordered_map>
 
 namespace ESPFirebase {
 struct HTTPResponse {
@@ -13,13 +14,38 @@ struct HTTPResponse {
 
 class Firestore {
 public:
-    Firestore(FirebaseApp& app, const char* project_id);
-    HTTPResponse create_database(const char* database_id);
-    HTTPResponse delete_database(const char* database_id);
-    HTTPResponse get_database(const char* database_id);
+    Firestore(FirebaseApp& app, const std::string& project_id);
+    HTTPResponse create_database(const std::string& database_id);
+    HTTPResponse delete_database(const std::string& database_id);
+    HTTPResponse get_database(const std::string& database_id);
     HTTPResponse list_databases();
+    // HTTPResponse patch_database(const std::string& database_id);
 
-    // HTTPResponse patch_database(const char* database_id);
+/*
+"arrayValue": {
+"values": [
+    {
+    "booleanValue": false
+    }
+]
+},
+"booleanValue": false,
+"bytesValue": "",
+"doubleValue": 0,
+"geoPointValue": {},
+"integerValue": 0,
+"mapValue": {
+"fields": {
+    "": {
+    "arrayValue": {}
+    }
+}
+},
+"nullValue": "NULL_VALUE",
+"referenceValue": "",
+"stringValue": "",
+"timestampValue": ""
+*/
 
     struct Document {
         std::string name;
@@ -35,29 +61,30 @@ public:
     };
 
     DocumentResponse create_document(
-        const char* database_id, const char* collection_id,
-        const Document& document, const char* document_id = ""
+        const std::string& database_id, const std::string& collection_id,
+        const Document& document, const std::string& document_id = ""
     );
 
     HTTPResponse delete_document(
-        const char* database_id, const char* collection_id,
-        const char* document_id
+        const std::string& database_id, const std::string& collection_id,
+        const std::string& document_id
     );
 
     DocumentResponse get_document(
-        const char* database_id, const char* collection_id,
-        const char* document_id
+        const std::string& database_id, const std::string& collection_id,
+        const std::string& document_id
     );
 
     HTTPResponse patch_document(
-        const char* database_id, const char* collection_id,
+        const std::string& database_id, const std::string& collection_id,
         std::vector<std::string> update_mask, const Document& document,
-        const char* document_id = ""
+        const std::string& document_id = ""
     );
 
 private:
+    std::string make_url(const std::string& path, bool path_contains_query);
     FirebaseApp& app;
-    std::string project_id;
+    std::string base_url;
 };
 
 };  // namespace ESPFirebase
